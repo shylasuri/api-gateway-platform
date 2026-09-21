@@ -38,6 +38,7 @@ HELP.md
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
+*.tsbuildinfo
 node_modules/
 dist/
 npm-debug.log*

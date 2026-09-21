@@ -1,0 +1,38 @@
+# Production profile — activate with SPRING_PROFILES_ACTIVE=prod.
+# Every value below is REQUIRED from the environment (no defaults), so the app
+# refuses to start with a missing/weak secret instead of silently using a dev one.
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+  jpa:
+    hibernate:
+      # Still schema-managed for this project's scope; swap for Flyway/Liquibase
+      # if you evolve the schema in production.
+      ddl-auto: update
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      username: ${REDIS_USERNAME:default}
+      password: ${REDIS_PASSWORD}
+      ssl:
+        enabled: ${REDIS_SSL:true}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}            # must be a strong 32+ char secret (enforced in JwtService)
+  frontend-url: ${FRONTEND_URL}      # locks CORS to your deployed frontend origin
+  password-reset:
+    expose-token: false              # never return reset tokens over the API in production
+  seed:
+    # No default demo passwords ship in prod — you must set strong values.
+    admin-password: ${SEED_ADMIN_PASSWORD}
+    consumer-password: ${SEED_CONSUMER_PASSWORD}
+
+# Quieter, structured-friendly logging in production.
+logging:
+  level:
+    com.gateway.platform: INFO
+    org.springframework: WARN

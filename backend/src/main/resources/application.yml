@@ -1,5 +1,6 @@
 server:
-  port: 8080
+  # Respect the platform-injected PORT (Render, etc.); default 8080 locally.
+  port: ${PORT:8080}
 
 spring:
   application:
@@ -28,6 +29,11 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      # Managed Redis (e.g. Upstash) requires auth + TLS; local Redis leaves these blank/false.
+      username: ${REDIS_USERNAME:}
+      password: ${REDIS_PASSWORD:}
+      ssl:
+        enabled: ${REDIS_SSL:false}
 
   jackson:
     default-property-inclusion: non_null
@@ -40,6 +46,18 @@ app:
   stripe:
     secret-key: ${STRIPE_SECRET_KEY:}
     webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+  password-reset:
+    token-expiry-minutes: ${PASSWORD_RESET_EXPIRY_MINUTES:30}
+    # Local/dev only: with no email service, return the reset link in the API
+    # response so the flow is testable. Set to false in production and deliver
+    # the link by email instead.
+    expose-token: ${PASSWORD_RESET_EXPOSE_TOKEN:true}
+  mail:
+    # Resend API key (https://resend.com). Blank = email disabled (link only logged/returned).
+    resend-api-key: ${RESEND_API_KEY:}
+    # Must be an address on a domain you've verified in Resend. onboarding@resend.dev
+    # works out of the box but only delivers to your own Resend account email.
+    from: ${MAIL_FROM:GatewayPlatform <onboarding@resend.dev>}
   seed:
     enabled: ${SEED_ENABLED:true}
     admin-email: ${SEED_ADMIN_EMAIL:admin@gateway.local}

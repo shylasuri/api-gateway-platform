@@ -1,0 +1,65 @@
+# Render Blueprint — deploys the Spring Boot backend and the sample API.
+# Postgres (Neon) and Redis (Upstash) are external managed services; set their
+# connection values as environment variables in the Render dashboard.
+# Frontend is deployed separately on Vercel (see DEPLOYMENT.md).
+services:
+  - type: web
+    name: gateway-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    region: oregon
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=75.0
+      # --- PostgreSQL (Neon) ---
+      - key: DATABASE_URL          # jdbc:postgresql://<host>/<db>?sslmode=require
+        sync: false
+      - key: DATABASE_USERNAME
+        sync: false
+      - key: DATABASE_PASSWORD
+        sync: false
+      # --- Redis (Upstash) ---
+      - key: REDIS_HOST
+        sync: false
+      - key: REDIS_PORT
+        value: "6379"
+      - key: REDIS_USERNAME
+        value: default
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: REDIS_SSL
+        value: "true"
+      # --- Auth / app ---
+      - key: JWT_SECRET
+        generateValue: true        # Render generates a strong secret for you
+      - key: FRONTEND_URL          # https://<your-app>.vercel.app
+        sync: false
+      - key: SAMPLE_API_URL        # https://gateway-sample-api.onrender.com/products
+        sync: false
+      # --- Seed accounts (choose strong values you're willing to demo with) ---
+      - key: SEED_ADMIN_EMAIL
+        sync: false
+      - key: SEED_ADMIN_PASSWORD
+        sync: false
+      - key: SEED_CONSUMER_EMAIL
+        sync: false
+      - key: SEED_CONSUMER_PASSWORD
+        sync: false
+      # --- Email (Resend) for password reset ---
+      - key: RESEND_API_KEY
+        sync: false
+      - key: MAIL_FROM             # e.g. "GatewayPlatform <noreply@yourdomain.com>"
+        sync: false
+
+  - type: web
+    name: gateway-sample-api
+    runtime: docker
+    dockerfilePath: ./sample-api/Dockerfile
+    dockerContext: ./sample-api
+    plan: free
+    region: oregon
