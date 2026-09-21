@@ -1,0 +1,99 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: gateway-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DATABASE_NAME:-api_gateway_platform}
+      POSTGRES_USER: ${DATABASE_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+    ports:
+      # Host 5433 avoids clashing with the native postgresql-x64-16 service on 5432.
+      # Container port stays 5432, so the backend still reaches it as postgres:5432.
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME:-postgres}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: gateway-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  sample-api:
+    build:
+      context: ./sample-api
+    container_name: gateway-sample-api
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      PORT: 8081
+
+  backend:
+    build:
+      context: ./backend
+    container_name: gateway-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      sample-api:
+        condition: service_started
+    ports:
+      - "8080:8080"
+    environment:
+      # Inside the Docker network, services reach each other by service name,
+      # NOT localhost — see README "Docker" section.
+      DATABASE_URL: jdbc:postgresql://postgres:5432/${DATABASE_NAME:-api_gateway_platform}
+      DATABASE_USERNAME: ${DATABASE_USERNAME:-postgres}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-postgres}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      JWT_SECRET: ${JWT_SECRET:-local-development-only-change-me-this-must-be-at-least-32-chars}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS:-86400000}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY:-}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET:-}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      SAMPLE_API_URL: http://sample-api:8081/products
+      SEED_ENABLED: ${SEED_ENABLED:-true}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@gateway.local}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin123!}
+      SEED_CONSUMER_EMAIL: ${SEED_CONSUMER_EMAIL:-consumer@gateway.local}
+      SEED_CONSUMER_PASSWORD: ${SEED_CONSUMER_PASSWORD:-Consumer123!}
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_BACKEND_URL: http://localhost:8080
+    container_name: gateway-frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "5173:80"
+
+volumes:
+  postgres_data:

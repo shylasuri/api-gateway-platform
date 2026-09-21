@@ -1,0 +1,66 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway-platform
+
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/api_gateway_platform}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:postgres}
+    hikari:
+      maximum-pool-size: 10
+
+  jpa:
+    hibernate:
+      # Simple, dependency-free schema management for this project. See README
+      # "Database" section — swap for Flyway/Liquibase migrations in production.
+      ddl-auto: update
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+        jdbc:
+          time_zone: UTC
+
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  jackson:
+    default-property-inclusion: non_null
+
+app:
+  jwt:
+    secret: ${JWT_SECRET:local-development-only-change-me-this-must-be-at-least-32-chars}
+    expiration-ms: ${JWT_EXPIRATION_MS:86400000}
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  stripe:
+    secret-key: ${STRIPE_SECRET_KEY:}
+    webhook-secret: ${STRIPE_WEBHOOK_SECRET:}
+  seed:
+    enabled: ${SEED_ENABLED:true}
+    admin-email: ${SEED_ADMIN_EMAIL:admin@gateway.local}
+    admin-password: ${SEED_ADMIN_PASSWORD:Admin123!}
+    consumer-email: ${SEED_CONSUMER_EMAIL:consumer@gateway.local}
+    consumer-password: ${SEED_CONSUMER_PASSWORD:Consumer123!}
+  sample-api:
+    backend-url: ${SAMPLE_API_URL:http://sample-api:8081/products}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+  api-docs:
+    path: /v3/api-docs
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    com.gateway.platform: INFO

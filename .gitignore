@@ -1,0 +1,79 @@
+# ─────────────────────────────────────────────────────────────
+# Environment / secrets  —  NEVER commit real values.
+# .env.example is intentionally tracked as a template.
+# ─────────────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+!.env.example
+
+# Keys / certificates
+*.pem
+*.key
+*.crt
+*.cer
+*.p12
+*.pfx
+*.jks
+*.keystore
+id_rsa
+id_rsa.pub
+
+# ─────────────────────────────────────────────────────────────
+# Backend (Maven / Java)
+# ─────────────────────────────────────────────────────────────
+backend/target/
+target/
+*.class
+*.jar
+*.war
+.mvn/wrapper/maven-wrapper.jar
+!**/.mvn/wrapper/*.properties
+HELP.md
+
+# ─────────────────────────────────────────────────────────────
+# Frontend (Node)
+# ─────────────────────────────────────────────────────────────
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Sample API
+sample-api/node_modules/
+
+# ─────────────────────────────────────────────────────────────
+# Logs & build artifacts
+# ─────────────────────────────────────────────────────────────
+*.log
+logs/
+build-log.txt
+
+# ─────────────────────────────────────────────────────────────
+# IDE / editor
+# ─────────────────────────────────────────────────────────────
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.swp
+*.swo
+
+# ─────────────────────────────────────────────────────────────
+# IDE-extension tooling (not part of the project)
+# ─────────────────────────────────────────────────────────────
+.github/modernize/
+
+# ─────────────────────────────────────────────────────────────
+# OS-generated
+# ─────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini

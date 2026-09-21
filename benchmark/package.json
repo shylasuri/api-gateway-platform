@@ -1,0 +1,9 @@
+{
+  "name": "rate-limiter-benchmark",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node benchmark.js"
+  }
+}
